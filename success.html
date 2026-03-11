@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Hall Booking</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=3">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body
+    style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: url('hall333.jpg'); background-size: cover; background-position: center;">
+    <div class="hero-overlay"></div>
+
+    <div class="glass-panel fade-in"
+        style="position: relative; z-index: 2; padding: 3rem; text-align: center; max-width: 500px; border-radius: 12px;">
+        <div id="loadingState">
+            <div class="spinner"></div>
+            <h2 style="margin-top: 1rem;">Verifying Payment...</h2>
+            <p style="color: var(--text-muted);">Please wait while we confirm your booking.</p>
+        </div>
+
+        <div id="successState" class="hidden">
+            <i class="fas fa-check-circle" style="font-size: 5rem; color: #64ffda; margin-bottom: 1.5rem;"></i>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Booking Confirmed!</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Thank you, <span id="customerName"
+                    style="color: var(--text-light); font-weight: bold;"></span>. Your payment was successful.</p>
+
+            <div class="glass-card"
+                style="text-align: left; padding: 1.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05);">
+                <p><strong>Hall:</strong> <span id="hallName">...</span></p>
+                <p><strong>Date:</strong> <span id="bookingDate">...</span></p>
+                <p><strong>Slot:</strong> <span id="bookingSlot">...</span></p>
+                <p><strong>Booking ID:</strong> <span id="bookingId" style="font-family: monospace;">...</span></p>
+            </div>
+
+            <a href="index.html" class="btn btn-primary full-width">Back to Home</a>
+        </div>
+
+        <div id="errorState" class="hidden">
+            <i class="fas fa-exclamation-triangle" style="font-size: 5rem; color: #ff6b6b; margin-bottom: 1.5rem;"></i>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Something went wrong</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">We received your payment, but couldn't save the
+                booking automatically.</p>
+            <p style="color: white; background: rgba(255,107,107,0.1); padding: 1rem; border-radius: 4px;">Please take a
+                screenshot and contact support with your Payment ID.</p>
+            <a href="index.html#support" class="btn btn-outline full-width" style="margin-top: 2rem;">Contact
+                Support</a>
+        </div>
+    </div>
+
+    <script>
+        // Use the same Supabase configuration
+        const SUPABASE_URL = 'https://erhheowveqgnkliadtdd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyaGhlb3d2ZXFnbmtsaWFkdGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyOTgwNzgsImV4cCI6MjA4NTg3NDA3OH0.Hss6sOTo0lx34sykr23bhaaVkXtu26Ogw46Ac58RUZw';
+
+        let supabaseClient;
+        try {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            console.error(e);
+        }
+
+        const halls = [
+            { id: 1, name: "Sarjerao Yadav Multipurpose Hall & Lawn" },
+            { id: 2, name: "Indira Palace & Lawns" },
+            { id: 3, name: "Mankeshwar Multi-purpose Hall & Lawns" },
+            { id: 4, name: "Akshay Multipurpose Hall" }
+        ];
+
+        window.onload = async function () {
+            const rawData = sessionStorage.getItem('pendingBooking');
+
+            if (!rawData) {
+                // No pending booking found - maybe direct access?
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('errorState').classList.remove('hidden');
+                document.querySelector('#errorState h1').textContent = "Session Expired";
+                document.querySelector('#errorState p').textContent = "No booking details found. Please start over.";
+                return;
+            }
+
+            const bookingDetails = JSON.parse(rawData);
+            const { hall_id, booking_date, slot, customer_name, contact_number } = bookingDetails;
+
+            // Fill UI details immediately
+            document.getElementById('customerName').textContent = customer_name;
+            const hall = halls.find(h => h.id == hall_id);
+            document.getElementById('hallName').textContent = hall ? hall.name : "Unknown Hall";
+            document.getElementById('bookingDate').textContent = booking_date;
+            document.getElementById('bookingSlot').textContent = slot;
+
+            if (supabaseClient) {
+                // Insert into Database
+                const { data, error } = await supabaseClient
+                    .from('bookings')
+                    .insert([bookingDetails])
+                    .select();
+
+                document.getElementById('loadingState').classList.add('hidden');
+
+                if (error) {
+                    console.error("DB Insert Error", error);
+                    document.getElementById('errorState').classList.remove('hidden');
+                } else {
+                    // Success!
+                    document.getElementById('successState').classList.remove('hidden');
+                    if (data && data[0]) {
+                        document.getElementById('bookingId').textContent = "#" + data[0].id;
+                    }
+                    // Clear storage so refresh doesn't duplicate (though DB PK might prevent it depending on schema, but good practice)
+                    sessionStorage.removeItem('pendingBooking');
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>
