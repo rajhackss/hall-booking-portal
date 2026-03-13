@@ -285,13 +285,13 @@ function showHallDetails(id) {
                 <div class="underline"></div>
             </div>
             
-            <div class="booking-wrapper glass-panel">
+            <div class="booking-wrapper glass-panel" style="background-color: var(--primary);">
                 <div id="initialBookNowSection" style="text-align: center; padding: 3rem 1rem;">
-                    <button class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2.5rem;" onclick="document.getElementById('initialBookNowSection').classList.add('hidden'); document.getElementById('calendarContainerSection').classList.remove('hidden');">Book Now</button>
+                    <button class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2.5rem; background-color: var(--secondary); color: var(--primary);" onclick="document.getElementById('initialBookNowSection').classList.add('hidden'); document.getElementById('calendarContainerSection').classList.remove('hidden');">Book Now</button>
                 </div>
-
+                
                 <!-- CALENDAR SECTION -->
-                <div id="calendarContainerSection" class="calendar-container hidden">
+                <div id="calendarContainerSection" class="calendar-container hidden" style="background-color: var(--secondary); padding: 2rem; border-radius: 8px;">
                     <div class="calendar-header">
                         <button class="btn btn-sm btn-outline" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
                         <h3 id="currentMonthYear">Month Year</h3>
@@ -310,15 +310,15 @@ function showHallDetails(id) {
                 </div>
 
                 <!-- SLOTS SECTION (Usually Hidden) -->
-                <div id="slotSection" class="availability-check hidden" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
-                     <h3>Available Slots for <span id="selectedDateDisplay" style="color: var(--primary)"></span></h3>
+                <div id="slotSection" class="availability-check hidden" style="margin-top: 2rem; padding: 2rem; background-color: var(--secondary); border-radius: 8px;">
+                     <h3 style="color: var(--primary);">Available Slots for <span id="selectedDateDisplay" style="color: var(--white)"></span></h3>
                      <div id="slotSelection" class="slots-grid"></div>
                 </div>
 
                 <!-- FORM SECTION (Usually Hidden) -->
-                <div id="bookingFormContainer" class="booking-form-container hidden">
-                    <h3>Confirm Booking</h3>
-                    <div class="selected-slot-info" style="margin-bottom: 1rem; color: var(--primary); font-weight: bold;"></div>
+                <div id="bookingFormContainer" class="booking-form-container hidden" style="margin-top: 2rem; padding: 2rem; background-color: var(--secondary); border-radius: 8px;">
+                    <h3 style="color: var(--primary);">Confirm Booking</h3>
+                    <div class="selected-slot-info" style="margin-bottom: 1rem; color: var(--white); font-weight: bold;"></div>
                     <form id="bookingForm">
                         <div class="form-group">
                             <label>Full Name</label>
