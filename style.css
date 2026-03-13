@@ -549,17 +549,22 @@ footer {
 
     .calendar-container {
         padding: 1rem;
-        overflow-x: auto;
+        /* Ensure no horizontal scroll by letting grid resize down naturally */
+    }
+
+    .calendar-grid {
+        gap: 0.25rem;
     }
 
     .cal-day {
-        padding: 0.5rem;
-        font-size: 0.85rem;
+        padding: 0.4rem 0.1rem;
+        font-size: 0.8rem;
     }
 
     .cal-day-header {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         padding-bottom: 0.2rem;
+        word-break: break-all;
     }
 
     .calendar-legend {
@@ -631,16 +636,17 @@ footer {
 
 @media (max-width: 480px) {
     .calendar-grid {
-        gap: 0.25rem;
+        gap: 0.15rem;
     }
 
     .cal-day {
-        padding: 0.4rem 0.2rem;
-        font-size: 0.75rem;
+        padding: 0.3rem 0;
+        font-size: 0.7rem;
     }
 
     .cal-day-header {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
+        word-break: break-all;
     }
 
     .section-container {
@@ -917,7 +923,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.5rem;
     text-align: center;
 }
