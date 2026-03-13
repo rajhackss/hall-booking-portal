@@ -286,8 +286,12 @@ function showHallDetails(id) {
             </div>
             
             <div class="booking-wrapper glass-panel">
+                <div id="initialBookNowSection" style="text-align: center; padding: 3rem 1rem;">
+                    <button class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2.5rem;" onclick="document.getElementById('initialBookNowSection').classList.add('hidden'); document.getElementById('calendarContainerSection').classList.remove('hidden');">Book Now</button>
+                </div>
+
                 <!-- CALENDAR SECTION -->
-                <div class="calendar-container">
+                <div id="calendarContainerSection" class="calendar-container hidden">
                     <div class="calendar-header">
                         <button class="btn btn-sm btn-outline" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
                         <h3 id="currentMonthYear">Month Year</h3>
@@ -423,13 +427,19 @@ async function renderCalendar() {
         const isFull = bookedSlots.size >= slotsArray.length; // All slots booked
 
         let dayClass = "cal-day";
-        if (dateObj < today) dayClass += " past"; // Cannot book past
-        else if (isFull) dayClass += " red"; // Fully Booked
-        else dayClass += " green"; // Available
+        if (dateObj < today) {
+            dayClass += " past"; // Cannot book past
+        } else if (dateObj > today) {
+            dayClass += " past"; // Cannot book future dates
+        } else if (isFull) {
+            dayClass += " red"; // Fully Booked
+        } else {
+            dayClass += " green"; // Available
+        }
 
-        // Click Handler (only for future green dates)
+        // Click Handler (only for today if available)
         let clickAttr = "";
-        if (dateObj >= today && !isFull) {
+        if (dateObj.getTime() === today.getTime() && !isFull) {
             clickAttr = `onclick="loadSlotsForDate('${dateStr}')"`;
         }
 
