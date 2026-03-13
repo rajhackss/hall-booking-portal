@@ -280,12 +280,13 @@ function showHallDetails(id) {
         </section>
 
         <section id="booking" class="section-container booking-section" style="background-image: url('${hall.images[1] || hall.images[0]}');">
-             <div class="section-title">
-                <h2>Check Availability & Book</h2>
-                <div class="underline"></div>
-            </div>
             
             <div class="booking-wrapper glass-panel">
+                <div class="section-title" style="margin-bottom: 0;">
+                    <h2 style="margin-top: 1rem;">Check Availability & Book</h2>
+                    <div class="underline"></div>
+                </div>
+
                 <div id="initialBookNowSection" style="text-align: center; padding: 3rem 1rem;">
                     <button class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2.5rem;" onclick="document.getElementById('initialBookNowSection').classList.add('hidden'); document.getElementById('calendarContainerSection').classList.remove('hidden');">Book Now</button>
                 </div>
