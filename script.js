@@ -92,6 +92,8 @@ halls.forEach(hall => {
 let currentHall = null;
 let currentSlot = null;
 let currentSelectedDate = null;
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 
 // ==========================================
 // INIT
@@ -290,13 +292,22 @@ function showHallDetails(id) {
                 </div>
 
                 <!-- CALENDAR SECTION -->
-                <div id="calendarContainerSection" class="calendar-container hidden" style="text-align: center;">
-                    <h3 style="margin-bottom: 1rem;">Select a Date</h3>
-                    <div class="calendar-legend" style="justify-content: center; margin-bottom: 1rem; display: flex;">
-                        <div style="margin: 0 10px;"><span class="dot green"></span> Available</div>
-                        <div style="margin: 0 10px;"><span class="dot red"></span> Fully Booked</div>
+                <div id="calendarContainerSection" class="calendar-container hidden">
+                    <div class="calendar-header">
+                        <button class="btn btn-sm btn-outline" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="currentMonthYear">Month Year</h3>
+                        <button class="btn btn-sm btn-outline" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                    <div id="calendarGrid" style="display: inline-block;"></div>
+                    
+                    <div class="calendar-legend">
+                        <div><span class="dot green"></span> Available</div>
+                        <div><span class="dot red"></span> Fully Booked</div>
+                    </div>
+                    
+                    <div id="calendarGrid" class="calendar-grid">
+                         <!-- Calendar Injected Here -->
+                         <div style="text-align:center; padding: 2rem;">Loading Calendar...</div>
+                    </div>
                 </div>
 
                 <!-- SLOTS SECTION (Usually Hidden) -->
@@ -341,77 +352,113 @@ function showHallDetails(id) {
 
 async function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
-    if (!grid) return;
+    const header = document.getElementById('currentMonthYear');
 
-    grid.innerHTML = '<div class="spinner" style="margin: 2rem auto;"></div>';
+    if (!grid || !header) return;
 
-    // Fetch all future bookings for this hall to mark the calendar correctly
+    // Formatting
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    header.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    grid.innerHTML = '<div class="spinner"></div>'; // Loading
+
+    // 1. Calculate Days
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Sun
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // 2. Fetch Data from Supabase
+    // Select all bookings for this hall in this month
+    const startStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
+    const endStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${daysInMonth}`;
+
     let dbBookings = [];
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
 
     if (supabaseClient) {
         const { data, error } = await supabaseClient
             .from('bookings')
             .select('booking_date, slot')
             .eq('hall_id', currentHall.id)
-            .gte('booking_date', todayStr);
+            .gte('booking_date', startStr)
+            .lte('booking_date', endStr);
 
         if (error) {
             console.error("Calendar Fetch Error:", error);
-            showNotification("Error loading dates", "error");
+            showNotification("Error loading calendar", "error");
         } else {
             dbBookings = data;
         }
     } else {
-        console.warn("Supabase not active, unable to fetch booked dates.");
+        // Fallback if supabase failed init
+        console.warn("Supabase not active, using empty mock");
     }
 
-    // Map bookings to dates
-    const bookingMap = {}; 
+    // 3. Process Data: Map date -> booked slots count
+    const bookingMap = {}; // "2026-02-14": Set("Morning", "Evening")
     dbBookings.forEach(row => {
         if (!bookingMap[row.booking_date]) bookingMap[row.booking_date] = new Set();
         bookingMap[row.booking_date].add(row.slot);
     });
 
-    // Clear loading spinner
-    grid.innerHTML = '';
+    // 4. Render Grid
+    let html = `
+        <div class="cal-day-header">Su</div>
+        <div class="cal-day-header">Mo</div>
+        <div class="cal-day-header">Tu</div>
+        <div class="cal-day-header">We</div>
+        <div class="cal-day-header">Th</div>
+        <div class="cal-day-header">Fr</div>
+        <div class="cal-day-header">Sa</div>
+    `;
 
-    // Initialize Flatpickr
-    flatpickr(grid, {
-        inline: true,
-        minDate: "today",
-        onChange: function(selectedDates, dateStr, instance) {
-            const bookedSlots = bookingMap[dateStr] ? bookingMap[dateStr] : new Set();
-            const isFull = bookedSlots.size >= slotsArray.length;
-            
-            if (isFull) {
-                showNotification("This date is fully booked.", "error");
-            } else {
-                loadSlotsForDate(dateStr);
-            }
-        },
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            // This runs for every day cell created in the calendar
-            const cellDateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-            
-            // Skip past dates (they are already disabled by minDate)
-            if (dayElem.dateObj < new Date(new Date().setHours(0,0,0,0))) return;
+    // Empty cells for padding
+    for (let i = 0; i < firstDay; i++) {
+        html += `<div class="cal-day empty"></div>`;
+    }
 
-            const bookedSlots = bookingMap[cellDateStr] ? bookingMap[cellDateStr] : new Set();
-            const isFull = bookedSlots.size >= slotsArray.length;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-            if (isFull) {
-                dayElem.classList.add("fully-booked-day");
-                dayElem.innerHTML += '<span class="dot red" style="display:block; margin: 3px auto 0;"></span>';
-            } else {
-                dayElem.classList.add("available-day");
-                dayElem.innerHTML += '<span class="dot green" style="display:block; margin: 3px auto 0;"></span>';
-            }
+    // Days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(currentYear, currentMonth, d);
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+        // Status Check
+        const bookedSlots = bookingMap[dateStr] ? bookingMap[dateStr] : new Set();
+        const isFull = bookedSlots.size >= slotsArray.length; // All slots booked
+
+        let dayClass = "cal-day";
+        if (dateObj < today) {
+            dayClass += " past"; // Cannot book past
+        } else if (isFull) {
+            dayClass += " red"; // Fully Booked
+        } else {
+            dayClass += " green"; // Available
         }
-    });
+
+        // Click Handler (only for today or future dates if available)
+        let clickAttr = "";
+        if (dateObj >= today && !isFull) {
+            clickAttr = `onclick="loadSlotsForDate('${dateStr}')"`;
+        }
+
+        html += `<div class="${dayClass}" ${clickAttr}>${d}</div>`;
+    }
+
+    grid.innerHTML = html;
 }
 
+function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    } else if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
 
 async function loadSlotsForDate(dateStr) {
     // UI Update
