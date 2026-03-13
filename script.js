@@ -429,17 +429,15 @@ async function renderCalendar() {
         let dayClass = "cal-day";
         if (dateObj < today) {
             dayClass += " past"; // Cannot book past
-        } else if (dateObj > today) {
-            dayClass += " past"; // Cannot book future dates
         } else if (isFull) {
             dayClass += " red"; // Fully Booked
         } else {
             dayClass += " green"; // Available
         }
 
-        // Click Handler (only for today if available)
+        // Click Handler (only for today or future dates if available)
         let clickAttr = "";
-        if (dateObj.getTime() === today.getTime() && !isFull) {
+        if (dateObj >= today && !isFull) {
             clickAttr = `onclick="loadSlotsForDate('${dateStr}')"`;
         }
 
