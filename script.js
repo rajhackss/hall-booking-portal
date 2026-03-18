@@ -125,7 +125,7 @@ function showHome() {
     window.scrollTo(0, 0);
 
     let html = `
-        <header id="home" class="hero-section" style="background-image: url('hall1.jpg');">
+        <header id="home" class="hero-section" style="background-image: url('pics/hall1.jpg');">
             <div class="hero-overlay"></div>
             <div class="hero-content fade-in">
                 <h1>Find Your Perfect Venue</h1>
