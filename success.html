@@ -40,7 +40,7 @@
             <div class="glass-card"
                 style="text-align: left; padding: 1.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05);">
                 <p><strong>Hall:</strong> <span id="hallName">...</span></p>
-                <p><strong>Date:</strong> <span id="bookingDate">...</span></p>
+                <p><strong>Dates:</strong> <span id="bookingDate">...</span></p>
                 <p><strong>Slot:</strong> <span id="bookingSlot">...</span></p>
                 <p><strong>Booking ID:</strong> <span id="bookingId" style="font-family: monospace;">...</span></p>
             </div>
@@ -91,21 +91,33 @@
                 return;
             }
 
-            const bookingDetails = JSON.parse(rawData);
-            const { hall_id, booking_date, slot, customer_name, contact_number } = bookingDetails;
+            const bookingData = JSON.parse(rawData);
+            
+            // Handle backwards compatibility (if object vs array)
+            const bookingsArray = Array.isArray(bookingData) ? bookingData : [bookingData];
+            
+            if (bookingsArray.length === 0) return;
+
+            const firstBooking = bookingsArray[0];
+            const { hall_id, slot, customer_name, contact_number } = firstBooking;
+            
+            let dateText = firstBooking.booking_date;
+            if (bookingsArray.length > 1) {
+                dateText = bookingsArray[0].booking_date + " to " + bookingsArray[bookingsArray.length - 1].booking_date + " (" + bookingsArray.length + " Days)";
+            }
 
             // Fill UI details immediately
             document.getElementById('customerName').textContent = customer_name;
             const hall = halls.find(h => h.id == hall_id);
             document.getElementById('hallName').textContent = hall ? hall.name : "Unknown Hall";
-            document.getElementById('bookingDate').textContent = booking_date;
+            document.getElementById('bookingDate').textContent = dateText;
             document.getElementById('bookingSlot').textContent = slot;
 
             if (supabaseClient) {
-                // Insert into Database
+                // Insert into Database (Supabase accepts array for bulk insert)
                 const { data, error } = await supabaseClient
                     .from('bookings')
-                    .insert([bookingDetails])
+                    .insert(bookingsArray)
                     .select();
 
                 document.getElementById('loadingState').classList.add('hidden');

@@ -25,66 +25,67 @@ const amenitiesMasterList = [
 
 const slotsArray = ["Morning", "Evening", "Night"];
 
-const halls = [
-    {
-        id: 1,
-        name: "Sarjerao Yadav Multipurpose Hall & Lawn",
-        address: "Bahe Rd, near SONA Chemicals, MIDC, Ishwarpur, Maharashtra 415409",
-        capacity: "500 Guests",
-        price: "₹70,000 / Day",
-        description: "A grand multipurpose hall with an expansive lawn, perfect for massive wedding receptions and public gatherings.",
-        images: ["hall1.jpg", "hall11.jpg", "hall111.jpg"],
-        reviews: [
-            { text: "Huge lawn, perfect for our 1000+ guest wedding.", author: "Amit P.", rating: 5 },
-            { text: "Good location in MIDC, very spacious.", author: "Suresh K.", rating: 4 }
-        ]
-    },
-    {
-        id: 2,
-        name: "Indira Palace & Lawns",
-        address: "Waghwadi, Phata, Ishwarpur, Maharashtra 415407",
-        capacity: "600 Guests",
-        price: "₹90,000 / Day",
-        description: "An elegant palace-style venue featuring regal architecture and diverse layout options for medium to large events.",
-        images: ["hall2.jpg", "hall22.jpg", "hall222.jpg"],
-        reviews: [
-            { text: "Felt like a royal wedding. Beautiful architecture.", author: "Neha S.", rating: 5 }
-        ]
-    },
-    {
-        id: 3,
-        name: "Mankeshwar Multi-purpose Hall & Lawns",
-        address: "Kore Appa Nagar, Kreshar Road, Shastri Nagar, Kisannagar, Ishwarpur, Maharashtra 415409",
-        capacity: "500 Guests",
-        price: "₹50,000 / Day",
-        description: "A modern facility located in a prime residential area, offering a blend of indoor comfort and outdoor freshness.",
-        images: ["hall3.jpg", "hall33.jpg", "hall333.jpg"],
-        reviews: [
-            { text: "Very convenient location for guests.", author: "Rohan D.", rating: 4 },
-            { text: "Clean and well maintained.", author: "Priya M.", rating: 5 }
-        ]
-    },
-    {
-        id: 4,
-        name: "Akshay Multipurpose Hall",
-        address: "Waghwadi Phata, Ishwarpur, Maharashtra 415409",
-        capacity: "800 Guests",
-        price: "₹65,000 / Day",
-        description: "A cozy and budget-friendly hall ideal for intimate weddings, birthday parties, and corporate functions.",
-        images: ["hall4.jpg", "hall44.jpg", "hall444.jpg"],
-        reviews: [
-            { text: "Great value for money.", author: "Vikram S.", rating: 5 }
-        ]
-    }
-];
+let halls = [];
 
-// Assign Random Amenities to Halls
-halls.forEach(hall => {
-    // Shuffle master list and pick 6-8 items
-    const shuffled = [...amenitiesMasterList].sort(() => 0.5 - Math.random());
-    const count = Math.floor(Math.random() * 3) + 6; // 6, 7, or 8 items
-    hall.facilities = shuffled.slice(0, count);
-});
+function getImagePath(img) {
+    if (!img) return "pics/hall1.jpg";
+    if (img.startsWith("http") || img.startsWith("pics/")) return img;
+    return "pics/" + img;
+}
+
+// ==========================================
+// DATA FETCHING
+// ==========================================
+async function fetchHalls() {
+    if (!supabaseClient) {
+        console.error("Supabase client not initialized");
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from('halls')
+        .select('*');
+
+    if (error) {
+        console.error("Error fetching halls:", error);
+        // Fallback to empty or notify user
+        showNotification("Failed to load halls from database.", "error");
+        return;
+    }
+
+    if (data && data.length > 0) {
+        halls = data;
+        // Assign Random Amenities if they don't exist in DB
+        halls.forEach(hall => {
+            if (!hall.facilities || hall.facilities.length === 0) {
+                const shuffled = [...amenitiesMasterList].sort(() => 0.5 - Math.random());
+                const count = Math.floor(Math.random() * 3) + 6;
+                hall.facilities = shuffled.slice(0, count);
+            }
+        });
+    } else {
+        console.log("No halls found in database. Seeding initial data...");
+        // Seed initial data if database is completely empty
+        const initialHalls = [
+            { name: "Sarjerao Yadav Multipurpose Hall & Lawn", address: "Bahe Rd, near SONA Chemicals, MIDC, Ishwarpur, Maharashtra 415409", capacity: "500 Guests", price: "₹70,000 / Day", description: "A grand multipurpose hall with an expansive lawn, perfect for massive wedding receptions and public gatherings.", images: ["pics/hall1.jpg", "pics/hall11.jpg", "pics/hall111.jpg"], facilities: ["AC", "Parking", "Generator / Power Backup", "Cleaning Service", "Lift / Accessibility"] },
+            { name: "Indira Palace & Lawns", address: "Waghwadi, Phata, Ishwarpur, Maharashtra 415407", capacity: "600 Guests", price: "₹90,000 / Day", description: "An elegant palace-style venue featuring regal architecture and diverse layout options for medium to large events.", images: ["pics/hall2.jpg", "pics/hall22.jpg", "pics/hall222.jpg"], facilities: ["Decoration Service", "DJ / Sound System", "Chairs & Tables", "Washroom Facility", "Parking"] },
+            { name: "Mankeshwar Multi-purpose Hall & Lawns", address: "Kore Appa Nagar, Kreshar Road, Shastri Nagar, Kisannagar, Ishwarpur, Maharashtra 415409", capacity: "500 Guests", price: "₹50,000 / Day", description: "A modern facility located in a prime residential area, offering a blend of indoor comfort and outdoor freshness.", images: ["pics/hall3.jpg", "pics/hall33.jpg", "pics/hall333.jpg"], facilities: ["AC", "Catering Service", "Projector / LED Screen", "Cleaning Service", "Washroom Facility"] },
+            { name: "Akshay Multipurpose Hall", address: "Waghwadi Phata, Ishwarpur, Maharashtra 415409", capacity: "800 Guests", price: "₹65,000 / Day", description: "A cozy and budget-friendly hall ideal for intimate weddings, birthday parties, and corporate functions.", images: ["pics/hall4.jpg", "pics/hall44.jpg", "pics/hall444.jpg"], facilities: ["Non-AC", "Parking", "Washroom Facility", "Catering Service", "DJ / Sound System"] }
+        ];
+        
+        const { error: seedError } = await supabaseClient.from('halls').insert(initialHalls);
+        
+        if (!seedError) {
+            console.log("Seeded successfully, fetching newly created halls...");
+            // Re-fetch to populate halls array
+            const { data: newData } = await supabaseClient.from('halls').select('*');
+            if (newData) halls = newData;
+        } else {
+            console.error("Error seeding database:", seedError);
+        }
+    }
+}
+
 
 // ==========================================
 // STATE
@@ -98,10 +99,12 @@ let currentYear = new Date().getFullYear();
 // ==========================================
 // INIT
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initNav();
+    await fetchHalls(); // Fetch halls before showing home
     showHome();
 });
+
 
 // ==========================================
 // ROUTING & UI VIEWS
@@ -143,7 +146,7 @@ function showHome() {
     halls.forEach(hall => {
         html += `
             <div class="hall-preview-card glass-card fade-in" onclick="showHallDetails(${hall.id})">
-                <div class="card-image" style="background-image: url('${hall.images[0]}');"></div>
+                <div class="card-image" style="background-image: url('${getImagePath(hall.images[0])}');"></div>
                 <div class="card-content">
                     <h3>${hall.name}</h3>
                     <p class="location"><i class="fas fa-map-marker-alt"></i> ${hall.address}</p>
@@ -232,11 +235,11 @@ function showHallDetails(id) {
     `).join('');
 
     const galleryHtml = hall.images.map(img => `
-        <div class="gallery-item" style="background-image: url('${img}');" onclick="window.open('${img}', '_blank')"></div>
+        <div class="gallery-item" style="background-image: url('${getImagePath(img)}');" onclick="window.open('${img}', '_blank')"></div>
     `).join('');
 
     app.innerHTML = `
-        <header class="hero-section" style="background-image: url('${hall.images[0]}'); height: 60vh;">
+        <header class="hero-section" style="background-image: url('${getImagePath(hall.images[0])}'); height: 60vh;">
             <div class="hero-overlay"></div>
             <div class="hero-content fade-in">
                 <h1>${hall.name}</h1>
@@ -279,7 +282,7 @@ function showHallDetails(id) {
             </div>
         </section>
 
-        <section id="booking" class="section-container booking-section" style="background-image: url('${hall.images[1] || hall.images[0]}');">
+        <section id="booking" class="section-container booking-section" style="background-image: url('${getImagePath(hall.images[1] || hall.images[0])}');">
             
             <div class="booking-wrapper glass-panel">
                 <div class="section-title" style="margin-bottom: 0;">
@@ -328,6 +331,11 @@ function showHallDetails(id) {
                         <div class="form-group">
                             <label>Contact Number</label>
                             <input type="tel" id="contact" required placeholder="10-digit Mobile Number">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Days</label>
+                            <input type="number" id="bookingDuration" value="1" min="1" max="30" required>
+                            <small id="pricePreview" style="color: var(--primary); display: block; margin-top: 0.5rem;"></small>
                         </div>
                         <button type="submit" class="btn btn-primary full-width" style="margin-top: 1rem;">Pay Now</button>
                     </form>
@@ -530,6 +538,10 @@ function selectSlot(slot, date) {
     info.textContent = `Booking for: ${date} (${slot})`;
 
     formContainer.scrollIntoView({ behavior: 'smooth' });
+    
+    // trigger price calculation
+    const durationInput = document.getElementById('bookingDuration');
+    if (durationInput) durationInput.dispatchEvent(new Event('input'));
 }
 
 function initBookingForm() {
@@ -539,6 +551,26 @@ function initBookingForm() {
     // Input Validation
     const nameInput = document.getElementById('fullName');
     const contactInput = document.getElementById('contact');
+    const durationInput = document.getElementById('bookingDuration');
+    const pricePreview = document.getElementById('pricePreview');
+
+    if (durationInput && currentHall) {
+        durationInput.addEventListener('input', (e) => {
+            let days = parseInt(e.target.value) || 1;
+            if (days < 1) days = 1;
+            // Parse base price
+            let basePrice = 0;
+            if (currentHall.price) {
+                const numericString = currentHall.price.replace(/[^0-9]/g, '');
+                basePrice = parseInt(numericString) || 0;
+            }
+            if (basePrice > 0) {
+                pricePreview.textContent = "Total Amount: ₹" + (basePrice * days).toLocaleString() + " (" + days + " days)";
+            }
+        });
+        // trigger initial
+        durationInput.dispatchEvent(new Event('input'));
+    }
 
     nameInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
@@ -567,16 +599,47 @@ function initBookingForm() {
         btn.textContent = "Processing...";
         btn.disabled = true;
 
-        // 1. Save to Session Storage (Pending)
-        const bookingDetails = {
+        let duration = parseInt(document.getElementById('bookingDuration').value) || 1;
+        if (duration < 1) duration = 1;
+
+        // Generate dates array
+        let datesArray = [];
+        let startDate = new Date(currentSelectedDate);
+        for(let i=0; i<duration; i++) {
+            let nextDate = new Date(startDate);
+            nextDate.setDate(startDate.getDate() + i);
+            let dStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`;
+            datesArray.push(dStr);
+        }
+
+        // Check availability in Supabase for all dates
+        if (supabaseClient) {
+            const { data, error } = await supabaseClient
+                .from('bookings')
+                .select('booking_date')
+                .eq('hall_id', currentHall.id)
+                .eq('slot', currentSlot)
+                .in('booking_date', datesArray);
+            
+            if (data && data.length > 0) {
+                const bookedDates = data.map(d => d.booking_date).join(', ');
+                showNotification("Unavailable! Already booked on: " + bookedDates, "error");
+                btn.textContent = "Pay Now";
+                btn.disabled = false;
+                return;
+            }
+        }
+
+        // 1. Save array to Session Storage
+        const bookingsArray = datesArray.map(date => ({
             hall_id: currentHall.id,
-            booking_date: currentSelectedDate,
+            booking_date: date,
             slot: currentSlot,
             customer_name: name,
             contact_number: contact,
             status: 'Confirmed'
-        };
-        sessionStorage.setItem('pendingBooking', JSON.stringify(bookingDetails));
+        }));
+        sessionStorage.setItem('pendingBooking', JSON.stringify(bookingsArray));
 
         // 2. Open Payment Link (Redirect Mechanism)
         // We open in _self so that when they finish payment, the redirect URL (success.html) loads in this tab 
@@ -769,7 +832,7 @@ window.fetchUserBookings = async function () {
         grid.innerHTML = data.map(booking => {
             const hall = halls.find(h => h.id === booking.hall_id);
             const hallName = hall ? hall.name : "Unknown Hall";
-            const hallImg = hall ? hall.images[0] : "hall1.jpg";
+            const hallImg = hall ? getImagePath(hall.images[0]) : "pics/hall1.jpg";
 
             return `
                 <div class="glass-card booking-card" style="padding: 1rem;">
@@ -806,3 +869,259 @@ window.cancelBooking = async function (id) {
         }
     }
 }
+
+// ==========================================
+// ADMIN FUNCTIONALITY
+// ==========================================
+let isAdminAuthenticated = false;
+
+window.showAdminLogin = function() {
+    if (isAdminAuthenticated) {
+        showAdminDashboard();
+        return;
+    }
+
+    const app = document.getElementById('app-content');
+    window.scrollTo(0, 0);
+
+    app.innerHTML = `
+        <div class="modal-overlay">
+            <div class="admin-modal glass-panel">
+                <h2>Admin Login</h2>
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="adminUser" required placeholder="admin">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="adminPass" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary full-width">Login</button>
+                    <button type="button" class="btn btn-outline full-width" style="margin-top: 1rem;" onclick="showHome()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = document.getElementById('adminUser').value;
+        const pass = document.getElementById('adminPass').value;
+
+        // Simple hardcoded login for demonstration (Can be moved to Supabase later)
+        if (user === 'admin' && pass === 'admin123') {
+            isAdminAuthenticated = true;
+            showNotification("Welcome, Admin!");
+            showAdminDashboard();
+        } else {
+            showNotification("Invalid credentials", "error");
+        }
+    });
+};
+
+window.showAdminDashboard = async function() {
+    if (!isAdminAuthenticated) {
+        showAdminLogin();
+        return;
+    }
+
+    const app = document.getElementById('app-content');
+    window.scrollTo(0, 0);
+
+    await fetchHalls(); // Refresh data
+
+    let hallRows = halls.map(hall => `
+        <div class="admin-hall-card">
+            <div style="background: url('${getImagePath(hall.images[0])}') center/cover; height: 150px; border-radius: 8px; margin-bottom: 1rem;"></div>
+            <h3>${hall.name}</h3>
+            <p>${hall.price}</p>
+            <div class="admin-hall-actions">
+                <button class="btn btn-sm btn-outline" onclick="deleteHall(${hall.id})">Delete</button>
+                <button class="btn btn-sm btn-secondary" onclick="manageHallImages(${hall.id})">Add Pics</button>
+            </div>
+        </div>
+    `).join('');
+
+    app.innerHTML = `
+        <div class="admin-dashboard">
+            <div class="admin-header">
+                <h2>Admin Dashboard</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openAddHallModal()">Add New Hall</button>
+                    <button class="logout-btn" onclick="isAdminAuthenticated=false; showHome();">Logout</button>
+                </div>
+            </div>
+            
+            <div class="admin-halls-grid">
+                ${hallRows}
+            </div>
+        </div>
+    `;
+};
+
+window.openAddHallModal = function() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'addHallModal';
+    const amenitiesHtml = amenitiesMasterList.map(a => `
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem; cursor: pointer;">
+            <input type="checkbox" name="hAmenity" value="${a}" style="width: auto; height: auto;"> ${a}
+        </label>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="admin-modal glass-panel" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <h2>Add New Hall</h2>
+            <form id="addHallForm">
+                <div class="form-group"><label>Hall Name</label><input type="text" id="hName" required></div>
+                <div class="form-group"><label>Address</label><input type="text" id="hAddress" required></div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;"><label>Capacity</label><input type="text" id="hCapacity" required placeholder="e.g. 500 Guests"></div>
+                    <div class="form-group" style="flex: 1;"><label>Price</label><input type="text" id="hPrice" required placeholder="e.g. ₹50,000 / Day"></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="hDesc" required></textarea></div>
+                <div class="form-group">
+                    <label>Amenities / Facilities</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; background: var(--secondary-light); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--glass-border);">
+                        ${amenitiesHtml}
+                    </div>
+                    <input type="text" id="hOtherAmenities" placeholder="Other amenities (comma separated)" style="margin-top: 10px;">
+                </div>
+                <div class="form-group" style="padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--primary);">Layout & Gallery Images</h3>
+                    <div class="form-group">
+                        <label>1. Hero Banner Image (Top)</label>
+                        <input type="text" id="hHeroImg" required placeholder="hero.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>2. Booking Section Background</label>
+                        <input type="text" id="hBookingImg" required placeholder="booking-bg.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>3. Photo Gallery Images (Comma Separated)</label>
+                        <input type="text" id="hGalleryImgs" required placeholder="pic1.jpg, pic2.jpg, pic3.jpg">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Hall</button>
+                    <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('addHallModal').remove()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('addHallForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const checkboxes = document.querySelectorAll('input[name="hAmenity"]:checked');
+        let selectedAmenities = Array.from(checkboxes).map(cb => cb.value);
+        
+        const otherAmInput = document.getElementById('hOtherAmenities').value.trim();
+        if (otherAmInput) {
+            selectedAmenities = selectedAmenities.concat(otherAmInput.split(',').map(s => s.trim()).filter(s => s));
+        }
+
+        const heroImg = document.getElementById('hHeroImg').value.trim() || 'hall1.jpg';
+        const bookingImg = document.getElementById('hBookingImg').value.trim() || heroImg;
+        const galleryInput = document.getElementById('hGalleryImgs').value;
+        const galleryImgs = galleryInput.split(',').map(s => s.trim()).filter(s => s);
+        
+        // Construct array: [0] is Hero, [1] is Booking Bg
+        let finalImages = [heroImg, bookingImg];
+        if (galleryImgs.length > 0) {
+            finalImages = finalImages.concat(galleryImgs);
+        }
+
+        const newHall = {
+            name: document.getElementById('hName').value,
+            address: document.getElementById('hAddress').value,
+            capacity: document.getElementById('hCapacity').value,
+            price: document.getElementById('hPrice').value,
+            description: document.getElementById('hDesc').value,
+            images: finalImages,
+            facilities: selectedAmenities.length > 0 ? selectedAmenities : amenitiesMasterList.slice(0, 4)
+        };
+
+        if (supabaseClient) {
+            const { error } = await supabaseClient
+                .from('halls')
+                .insert([newHall]);
+            if (error) {
+                showNotification("Error adding hall: " + error.message, "error");
+            } else {
+                showNotification("Hall added successfully!");
+                document.getElementById('addHallModal').remove();
+                showAdminDashboard();
+            }
+        }
+    });
+};
+
+window.deleteHall = async function(id) {
+    if (!confirm("Are you sure you want to delete this hall?")) return;
+
+    if (supabaseClient) {
+        const { error } = await supabaseClient
+            .from('halls')
+            .delete()
+            .eq('id', id);
+        
+        if (error) {
+            showNotification("Delete failed: " + error.message, "error");
+        } else {
+            showNotification("Hall deleted");
+            showAdminDashboard();
+        }
+    }
+};
+
+window.manageHallImages = function(hallId) {
+    const hall = halls.find(h => h.id === hallId);
+    if (!hall) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'manageImagesModal';
+    modal.innerHTML = `
+        <div class="admin-modal glass-panel">
+            <h2>Manage Images for ${hall.name}</h2>
+            <div class="image-preview-area" id="modalImageGrid">
+                ${hall.images.map(img => `<img src="${getImagePath(img)}" class="preview-img">`).join('')}
+            </div>
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label>Add New Image URL</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="newImgUrl" placeholder="https://example.com/image.jpg">
+                    <button class="btn btn-secondary" onclick="addNewImageUrl(${hallId})">Add</button>
+                </div>
+            </div>
+            <button class="btn btn-primary full-width" style="margin-top: 1rem;" onclick="document.getElementById('manageImagesModal').remove()">Done</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+window.addNewImageUrl = async function(hallId) {
+    const url = document.getElementById('newImgUrl').value;
+    if (!url) return;
+
+    const hall = halls.find(h => h.id === hallId);
+    const updatedImages = [...hall.images, url];
+
+    if (supabaseClient) {
+        const { error } = await supabaseClient
+            .from('halls')
+            .update({ images: updatedImages })
+            .eq('id', hallId);
+        
+        if (error) {
+            showNotification("Update failed", "error");
+        } else {
+            showNotification("Image added!");
+            hall.images = updatedImages; // Local update
+            document.getElementById('modalImageGrid').innerHTML += `<img src="${url}" class="preview-img">`;
+            document.getElementById('newImgUrl').value = '';
+        }
+    }
+};

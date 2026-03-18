@@ -175,7 +175,7 @@ ul {
     height: 100vh;
     width: 100%;
     /* Placeholder background, will be replaced by generated image or asset */
-    background: url('hero.png') center/cover no-repeat;
+    background: url('pics/hero.png') center/cover no-repeat;
     position: relative;
     display: flex;
     align-items: center;
@@ -1050,4 +1050,138 @@ input[type='date']::-webkit-calendar-picker-indicator {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* ==================================
+   ADMIN DASHBOARD STYLES
+   ================================== */
+.admin-dashboard {
+    padding: 8rem 2rem 4rem; /* Top padding clears the navbar */
+    max-width: 1240px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 1.5rem;
+}
+
+.admin-header h2 {
+    font-size: 2.5rem;
+    background: linear-gradient(to right, var(--white), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.admin-halls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.admin-hall-card {
+    background: rgba(23, 42, 69, 0.7);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.admin-hall-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.admin-hall-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 12, 27, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000; /* Higher than navbar */
+    padding: 2rem;
+}
+
+.admin-modal {
+    background: var(--secondary-light);
+    border: 1px solid var(--primary);
+    padding: 3rem;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 550px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalSlideUp 0.4s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.image-preview-area {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: var(--secondary);
+    border-radius: 8px;
+}
+
+.preview-img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.admin-modal .form-group input, 
+.admin-modal .form-group textarea {
+    background: var(--secondary-light);
+    border: 1px solid var(--glass-border);
+    color: var(--text-light);
+    font-size: 1rem;
+    padding: 14px;
+}
+
+.admin-modal .form-group input:focus {
+    border-color: var(--primary);
+    background: var(--secondary);
+}
+
+.logout-btn {
+    background: #ff4d4d;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.logout-btn:hover {
+    background: #ff1a1a;
+    transform: scale(1.05);
 }
