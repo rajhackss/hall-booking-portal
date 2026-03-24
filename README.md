@@ -2,7 +2,7 @@
 
 A modern, responsive web application for booking halls and lawns for events like weddings, parties, and corporate functions. Built with a premium dark theme featuring glassmorphism design principles.
 
-![Hall Booking Portal](hall1.jpg)
+![Hall Booking Portal](pics/hall1.jpg)
 
 ---
 
@@ -45,7 +45,6 @@ A modern, responsive web application for booking halls and lawns for events like
 |------------|---------|
 | **Supabase** | Backend-as-a-Service (BaaS) for database |
 | **PostgreSQL** | Database (via Supabase) |
-| **PHP** | Server configuration (XAMPP) |
 
 ### Payment Gateway
 | Technology | Purpose |
@@ -55,7 +54,7 @@ A modern, responsive web application for booking halls and lawns for events like
 ### Development Environment
 | Technology | Purpose |
 |------------|---------|
-| **XAMPP** | Local development server (Apache + PHP) |
+| **XAMPP** | Local development server (Apache) |
 
 ---
 
