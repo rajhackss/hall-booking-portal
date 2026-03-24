@@ -23,7 +23,7 @@ const amenitiesMasterList = [
     "Lift / Accessibility", "Cleaning Service"
 ];
 
-const slotsArray = ["Morning", "Evening", "Night"];
+const slotsArray = ["Morning", "Evening", "Night", "Full Day"];
 
 let halls = [];
 
@@ -433,7 +433,7 @@ async function renderCalendar() {
 
         // Status Check
         const bookedSlots = bookingMap[dateStr] ? bookingMap[dateStr] : new Set();
-        const isFull = bookedSlots.size >= slotsArray.length; // All slots booked
+        const isFull = bookedSlots.has('Full Day') || (bookedSlots.has('Morning') && bookedSlots.has('Evening') && bookedSlots.has('Night'));
 
         let dayClass = "cal-day";
         if (dateObj < today) {
@@ -499,8 +499,18 @@ async function loadSlotsForDate(dateStr) {
 
     slotGrid.innerHTML = '';
 
+    const isFullDayBooked = bookedSlots.includes('Full Day');
+    const isPartiallyBooked = bookedSlots.includes('Morning') || bookedSlots.includes('Evening') || bookedSlots.includes('Night');
+
     slotsArray.forEach(slot => {
-        const isBooked = bookedSlots.includes(slot);
+        let isBooked = bookedSlots.includes(slot);
+        
+        if (slot === 'Full Day' && isPartiallyBooked) {
+            isBooked = true;
+        } else if (slot !== 'Full Day' && isFullDayBooked) {
+            isBooked = true;
+        }
+
         const btn = document.createElement('div');
         btn.className = `slot-card ${isBooked ? 'booked' : 'available'}`;
         btn.innerHTML = `<i class="fas ${getSlotIcon(slot)}"></i><br>${slot}`;
@@ -520,6 +530,7 @@ async function loadSlotsForDate(dateStr) {
 function getSlotIcon(slot) {
     if (slot === 'Morning') return 'fa-sun';
     if (slot === 'Evening') return 'fa-cloud-sun';
+    if (slot === 'Full Day') return 'fa-calendar-day';
     return 'fa-moon';
 }
 
