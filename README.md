@@ -11,7 +11,7 @@ A modern, responsive web application for booking halls and lawns for events like
 ### 🏠 Core Functionality
 - **Hall Listings** - Browse multiple venue options with detailed information
 - **Interactive Calendar** - Visual availability calendar with color-coded statuses
-- **Slot-Based Booking** - Morning, Evening, and Night slots available
+- **Slot-Based Booking** - Morning, Evening, Night, and Full Day slots available
 - **Real-time Availability** - Live updates from database preventing double bookings
 - **My Bookings** - View and manage your reservations with cancellation option
 
@@ -62,17 +62,16 @@ A modern, responsive web application for booking halls and lawns for events like
 ## 📁 Project Structure
 
 ```
-hall2/
+hall-booking-portal/
 ├── index.html          # Main entry point / Home page
 ├── success.html        # Payment success confirmation page
 ├── style.css           # Main stylesheet with all styling
 ├── script.js           # Main JavaScript file with all logic
 ├── config.php          # Razorpay API configuration
+├── index.txt           # Additional text file
 ├── README.md           # Project documentation
 │
-├── 📷 Images
-│   ├── hero.png        # Hero section background
-│   ├── upi_qr.png      # UPI QR code for payments
+├── 📷 pics/
 │   ├── hall1.jpg       # Hall 1 primary image
 │   ├── hall11.jpg      # Hall 1 gallery image
 │   ├── hall111.jpg     # Hall 1 gallery image
@@ -84,8 +83,7 @@ hall2/
 │   ├── hall333.jpg     # Hall 3 gallery image
 │   ├── hall4.jpg       # Hall 4 primary image
 │   ├── hall44.jpg      # Hall 4 gallery image
-│   ├── hall444.jpg     # Hall 4 gallery image
-│   └── hall_extra.jpg  # Additional hall image
+│   └── hall444.jpg     # Hall 4 gallery image
 ```
 
 ---
@@ -102,7 +100,7 @@ hall2/
 1. **Clone/Download** the project to your XAMPP htdocs folder:
    ```bash
    cd C:\xampp\htdocs
-   # Place the 'hall2' folder here
+   # Place the 'hall-booking-portal' folder here
    ```
 
 2. **Start XAMPP Services**:
@@ -111,7 +109,7 @@ hall2/
 
 3. **Access the Application**:
    ```
-   http://localhost/hall2/
+   http://localhost/hall-booking-portal/
    ```
 
 ---
@@ -143,7 +141,7 @@ hall2/
 | `id` | integer (PK) | Auto-generated unique ID |
 | `hall_id` | integer | Reference to hall (1-4) |
 | `booking_date` | date | Date of booking (YYYY-MM-DD) |
-| `slot` | text | Time slot (Morning/Evening/Night) |
+| `slot` | text | Time slot (Morning/Evening/Night/Full Day) |
 | `customer_name` | text | Customer's full name |
 | `contact_number` | text | 10-digit mobile number |
 | `status` | text | Booking status (Confirmed) |
