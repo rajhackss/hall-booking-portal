@@ -37,8 +37,6 @@ A modern, responsive web application for booking halls and lawns for events like
 | **HTML5** | Structure and semantic markup |
 | **CSS3** | Styling with CSS variables, Flexbox, Grid |
 | **JavaScript (ES6+)** | Client-side interactivity and logic |
-| **Font Awesome 6.4.0** | Icons and visual elements |
-| **Google Fonts** | Typography (Inter, Playfair Display) |
 
 ### Backend/Database
 | Technology | Purpose |
@@ -216,13 +214,6 @@ define('RAZORPAY_KEY_SECRET', 'your_key_secret');
 - ✅ Microsoft Edge
 - ✅ Safari
 - ✅ Mobile Browsers (responsive design)
-
----
-
-## 📞 Support
-
-- **Phone**: +91 8010253647
-- **Email**: vaishnavipatil1459@gmail.com
 
 ---
 
